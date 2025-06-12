@@ -29,6 +29,7 @@ class UnitermCanvas(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setFont(QFont("Arial", 16))
+        painter.fillRect(self.rect(), Qt.white)
         pen = QPen(Qt.black)
         pen.setWidth(2)
         painter.setPen(pen)
