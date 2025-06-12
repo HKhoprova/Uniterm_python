@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import (
-    QWidget,  QLabel, QLineEdit, QPushButton, QTextEdit,
-    QRadioButton, QButtonGroup, QVBoxLayout, QHBoxLayout, QApplication
+    QWidget,  QLabel, QLineEdit, QPushButton, QApplication,
+    QRadioButton, QButtonGroup, QVBoxLayout, QHBoxLayout, QMessageBox
 )
 from canvas import UnitermCanvas
 
@@ -70,7 +70,7 @@ class UnitermApp(QWidget):
         if a and b:
             self.canvas.draw_seq(a, b)
         else:
-            seq = "Wprowadź unitermy i spróbuj ponownie."
+            self.handle_error("Wprowadź unitermy i spróbuj ponownie.")
 
     def show_paral(self):
         a = self.paral_field1.text().strip()
@@ -78,7 +78,7 @@ class UnitermApp(QWidget):
         if a and b:
             self.canvas.draw_paral(a, b)
         else:
-            paral = "Wprowadź unitermy i spróbuj ponownie."
+            self.handle_error("Wprowadź unitermy i spróbuj ponownie.")
 
     def show_transform(self):
         sa = self.seq_field1.text().strip()
@@ -87,11 +87,14 @@ class UnitermApp(QWidget):
         pb = self.paral_field2.text().strip()
 
         if not sa or not sb or not pa or not pb:
-            transformed = "Dodaj operacje i spróbuj ponownie."
+            self.handle_error("Dodaj operacje i spróbuj ponownie.")
             return
         
         replace_first = self.radiobutton1.isChecked()
         self.canvas.draw_transformed(sa, sb, pa, pb, replace_first)
+
+    def handle_error(self, message):
+        QMessageBox.critical(self, "Błąd", message)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

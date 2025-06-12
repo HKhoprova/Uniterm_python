@@ -40,48 +40,41 @@ class UnitermCanvas(QWidget):
             sa, sb, pa, pb, replace_first = self.transformed
 
             if replace_first:
-                expr = f"{pa} , {pb} ; {sb}"
-                paral_part = f"{pa} , {pb}"
+                expr = f"{pa}  ,  {pb}  ;  {sb}"
             else:
-                expr = f"{sa} ; {pa} , {pb}"
-                paral_part = f"{pa} , {pb}"
+                expr = f"{sa}  ;  {pa}  ,  {pb}"
 
-            # Draw full expression
             painter.drawText(margin_x, y, expr)
 
-            # Measure full and partial text widths
             full_width = painter.fontMetrics().width(expr)
-            paral_width = painter.fontMetrics().width(paral_part)
+            paral_width = painter.fontMetrics().width(f"{pa}  ,  {pb}")
 
-            # Offset for [ around parallel part
             if replace_first:
                 paral_x = margin_x
             else:
-                offset = painter.fontMetrics().width(f"{sa} ; ")
+                offset = painter.fontMetrics().width(f"{sa}  ;  ")
                 paral_x = margin_x + offset
 
-            # Draw [ roof
-            painter.drawLine(paral_x - 5, y - 25, paral_x + paral_width + 10, y - 25)
-            painter.drawLine(paral_x - 5, y - 25, paral_x - 5, y - 15)
-            painter.drawLine(paral_x + paral_width + 10, y - 25, paral_x + paral_width + 10, y - 15)
+            painter.drawLine(paral_x - 5, y - 25, paral_x + paral_width + 5, y - 25)
+            painter.drawLine(paral_x - 5, y - 25, paral_x - 5, y - 20)
+            painter.drawLine(paral_x + paral_width + 5, y - 25, paral_x + paral_width + 5, y - 20)
 
-            # Draw ( arc roof for whole expression
-            painter.drawArc(margin_x - 10, y - 40, full_width + 20, 30, 0 * 16, 180 * 16)
+            painter.drawArc(margin_x - 10, y - 40, full_width + 20, 20, 0 * 16, 180 * 16)
 
         else:
             if self.seq:
                 a, b = self.seq
-                expr = f"{a} ; {b}"
+                expr = f"{a}  ;  {b}"
                 width = painter.fontMetrics().width(expr)
                 painter.drawText(margin_x, y, expr)
-                painter.drawArc(margin_x - 10, y - 40, width + 20, 30, 0 * 16, 180 * 16)
-                margin_x += 300
+                painter.drawArc(margin_x - 5, y - 30, width + 10, 20, 0 * 16, 180 * 16)
+                margin_x += painter.fontMetrics().width(expr) + 250
 
             if self.paral:
                 a, b = self.paral
-                expr = f"{a} , {b}"
+                expr = f"{a}  ,  {b}"
                 width = painter.fontMetrics().width(expr)
                 painter.drawText(margin_x, y, expr)
-                painter.drawLine(margin_x - 5, y - 25, margin_x + width + 10, y - 25)
-                painter.drawLine(margin_x - 5, y - 25, margin_x - 5, y - 15)
-                painter.drawLine(margin_x + width + 10, y - 25, margin_x + width + 10, y - 15)
+                painter.drawLine(margin_x - 5, y - 25, margin_x + width + 5, y - 25)
+                painter.drawLine(margin_x - 5, y - 25, margin_x - 5, y - 20)
+                painter.drawLine(margin_x + width + 5, y - 25, margin_x + width + 5, y - 20)
