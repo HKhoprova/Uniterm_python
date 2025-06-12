@@ -3,11 +3,14 @@ from PyQt5.QtWidgets import (
     QWidget,  QLabel, QLineEdit, QPushButton, QTextEdit,
     QRadioButton, QButtonGroup, QVBoxLayout, QHBoxLayout, QApplication
 )
+from canvas import UnitermCanvas
 
 class UnitermApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Uniterm Transformer")
+        self.canvas = UnitermCanvas()
+        self.canvas.setMinimumHeight(300)
 
         # Input sekwencjonowanie
         self.seq_label = QLabel("Pozioma operacja sekwencjowania:")
@@ -23,14 +26,6 @@ class UnitermApp(QWidget):
         self.paral_button = QPushButton("Dodaj")
         self.paral_button.clicked.connect(self.show_paral)
 
-        # Output obu operacji będzie później wyświetlany na canvas
-        self.output_seq_label = QLabel("Sekwencjowanie:")
-        self.output_seq_field = QTextEdit()
-        self.output_seq_field.setReadOnly(True)
-        self.output_paral_label = QLabel("Zrównoleglenie:")
-        self.output_paral_field = QTextEdit()
-        self.output_paral_field.setReadOnly(True)
-
         # Ustawienia zamiany
         self.radio_label = QLabel("Wybierz uniterm do zamiany:")
         self.radiobutton1 = QRadioButton("Pierwszy")
@@ -38,13 +33,9 @@ class UnitermApp(QWidget):
         radio_group = QButtonGroup()
         radio_group.addButton(self.radiobutton1)
         radio_group.addButton(self.radiobutton2)
+        self.radiobutton1.setChecked(True)
         self.transform_button = QPushButton("Zamień")
         self.transform_button.clicked.connect(self.show_transform)
-
-        # Output będzie później wyświetlany na canvas
-        self.output_transform_label = QLabel("Wynik zamiany:")
-        self.output_transform_field = QTextEdit()
-        self.output_transform_field.setReadOnly(True)
 
         # Widok okna
         window_layout = QVBoxLayout()
@@ -54,6 +45,7 @@ class UnitermApp(QWidget):
         transform_layout = QVBoxLayout()
 
         window_layout.addLayout(settings_layout)
+        window_layout.addWidget(self.canvas)
         settings_layout.addLayout(seq_layout)
         settings_layout.addLayout(paral_layout)
         settings_layout.addLayout(transform_layout)
@@ -69,13 +61,6 @@ class UnitermApp(QWidget):
         transform_layout.addWidget(self.radiobutton1)
         transform_layout.addWidget(self.radiobutton2)
         transform_layout.addWidget(self.transform_button)
-        # Tymczasowe
-        window_layout.addWidget(self.output_seq_label)
-        window_layout.addWidget(self.output_seq_field)
-        window_layout.addWidget(self.output_paral_label)
-        window_layout.addWidget(self.output_paral_field)
-        window_layout.addWidget(self.output_transform_label)
-        window_layout.addWidget(self.output_transform_field)
 
         self.setLayout(window_layout)
 
@@ -83,44 +68,34 @@ class UnitermApp(QWidget):
         a = self.seq_field1.text()
         b = self.seq_field2.text()
         if a and b:
-            seq = f"{a} ; {b}"
+            self.canvas.draw_seq(a, b)
         else:
             seq = "Wprowadź unitermy i spróbuj ponownie."
-        self.output_seq_field.setText(seq)
 
     def show_paral(self):
         a = self.paral_field1.text().strip()
         b = self.paral_field2.text().strip()
         if a and b:
-            paral = f"{a} , {b}"
+            self.canvas.draw_paral(a, b)
         else:
             paral = "Wprowadź unitermy i spróbuj ponownie."
-        self.output_paral_field.setText(paral)
 
     def show_transform(self):
-        seq = self.output_seq_field.toPlainText()
-        paral = self.output_paral_field.toPlainText()
+        sa = self.seq_field1.text().strip()
+        sb = self.seq_field2.text().strip()
+        pa = self.paral_field1.text().strip()
+        pb = self.paral_field2.text().strip()
 
-        if not seq or not paral or ';' not in seq or ',' not in paral:
-            self.output_transform_field.setText("Dodaj operacje i spróbuj ponownie.")
+        if not sa or not sb or not pa or not pb:
+            transformed = "Dodaj operacje i spróbuj ponownie."
             return
         
-        seq_parts = [s.strip() for s in seq.split(';')]
-        paral_wrapped = f"( {paral} )"
-
-        if self.radiobutton1.isChecked():
-            if len(seq_parts) >= 1:
-                seq_parts[0] = paral_wrapped
-        elif self.radiobutton2.isChecked():
-            if len(seq_parts) >= 2:
-                seq_parts[1] = paral_wrapped
-        
-        transformed = ' ; '.join(seq_parts)
-        self.output_transform_field.setText(transformed)
+        replace_first = self.radiobutton1.isChecked()
+        self.canvas.draw_transformed(sa, sb, pa, pb, replace_first)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = UnitermApp()
-    window.resize(800, 600)
+    window.resize(800, 500)
     window.show()
     sys.exit(app.exec_())
