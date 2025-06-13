@@ -30,6 +30,13 @@ def save_entry(title, author, sa, sb, pa, pb, replace_first):
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(db, f, indent=2, ensure_ascii=False)
 
+def delete_entry(title, author, datetime):
+    db = get_all_entries()
+    db = [entry for entry in db if entry["title"] != title or entry["author"] != author
+        or entry["datetime"] != datetime]
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(db, f, indent=2, ensure_ascii=False)
+
 def get_all_authors():
     db = load_database()
     return sorted(set(entry["author"] for entry in db if entry["author"]))

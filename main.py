@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import (
     QRadioButton, QButtonGroup, QVBoxLayout, QHBoxLayout, QMessageBox
 )
 from canvas import UnitermCanvas
-from database import save_entry
-from dialogs import SaveDialog
+from database import save_entry, get_all_entries
+from dialogs import SaveDialog, LoadDialog
 
 class UnitermApp(QWidget):
     def __init__(self):
@@ -48,6 +48,7 @@ class UnitermApp(QWidget):
         self.save_to_db_button.setEnabled(False)
         self.save_to_db_button.setToolTip("Wykonaj zamianę, aby aktywować zapis.")
         self.read_from_db_button = QPushButton("Odczytaj z bazy")
+        self.read_from_db_button.clicked.connect(self.read_from_db)
         self.save_as_png_button = QPushButton("Zapisz obraz")
 
         # Widok okna
@@ -129,7 +130,7 @@ class UnitermApp(QWidget):
         
         dialog = SaveDialog(self)
 
-        existing_titles = [] # [e["title"] for e in get_all_entries()]
+        existing_titles = [e["title"] for e in get_all_entries()]
         i = 1
         while f"Untitled{i}" in existing_titles:
             i += 1
@@ -144,6 +145,17 @@ class UnitermApp(QWidget):
             sa, sb, pa, pb, replace_first = self.saved_transformed
             save_entry(title, author, sa, sb, pa, pb, replace_first)
             QMessageBox.information(self, "Sukces", "Zapisano do bazy.")
+
+    def read_from_db(self):
+        dialog = LoadDialog(self)
+        if dialog.exec_():
+            entry = dialog.get_selected()
+            if not entry:
+                return
+            sa, sb, pa, pb, replace_first = entry["sa"], entry["sb"], entry["pa"], entry["pb"], entry["replace_first"]
+            self.saved_transformed = (sa, sb, pa, pb, replace_first)
+            self.canvas.draw_transformed(sa, sb, pa, pb, replace_first)
+            self.save_to_db_button.setEnabled(True)
 
     def handle_error(self, message):
         QMessageBox.warning(self, "Błąd", message)
