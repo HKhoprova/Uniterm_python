@@ -1,8 +1,10 @@
 import sys
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
-    QWidget,  QLabel, QLineEdit, QPushButton, QApplication,
-    QRadioButton, QButtonGroup, QVBoxLayout, QHBoxLayout, QMessageBox
+    QWidget,  QLabel, QLineEdit, QPushButton, QApplication, QMessageBox,
+    QRadioButton, QButtonGroup, QVBoxLayout, QHBoxLayout, QFileDialog
 )
+
 from canvas import UnitermCanvas
 from database import save_entry, get_all_entries
 from dialogs import SaveDialog, LoadDialog
@@ -50,6 +52,9 @@ class UnitermApp(QWidget):
         self.read_from_db_button = QPushButton("Odczytaj z bazy")
         self.read_from_db_button.clicked.connect(self.read_from_db)
         self.save_as_png_button = QPushButton("Zapisz obraz")
+        self.save_as_png_button.clicked.connect(self.save_as_png)
+        self.save_as_png_button.setEnabled(False)
+        self.save_as_png_button.setToolTip("Wykonaj zamianę, aby zapisać obraz.")
 
         # Widok okna
         window_layout = QVBoxLayout()
@@ -95,6 +100,7 @@ class UnitermApp(QWidget):
             self.saved_seq = (a, b)
             self.canvas.draw_seq(a, b)
             self.save_to_db_button.setEnabled(False)
+            self.save_as_png_button.setEnabled(False)
         else:
             self.handle_error("Wprowadź unitermy i spróbuj ponownie.")
 
@@ -105,6 +111,7 @@ class UnitermApp(QWidget):
             self.saved_paral = (a, b)
             self.canvas.draw_paral(a, b)
             self.save_to_db_button.setEnabled(False)
+            self.save_as_png_button.setEnabled(False)
         else:
             self.handle_error("Wprowadź unitermy i spróbuj ponownie.")
 
@@ -122,6 +129,7 @@ class UnitermApp(QWidget):
         self.saved_transformed = (sa, sb, pa, pb, replace_first)
         self.canvas.draw_transformed(sa, sb, pa, pb, replace_first)
         self.save_to_db_button.setEnabled(True)
+        self.save_as_png_button.setEnabled(True)
 
     def save_to_db(self):
         if not self.canvas.transformed:
@@ -144,6 +152,7 @@ class UnitermApp(QWidget):
             
             sa, sb, pa, pb, replace_first = self.saved_transformed
             save_entry(title, author, sa, sb, pa, pb, replace_first)
+            self.saved_title = title
             QMessageBox.information(self, "Sukces", "Zapisano do bazy.")
 
     def read_from_db(self):
@@ -156,6 +165,34 @@ class UnitermApp(QWidget):
             self.saved_transformed = (sa, sb, pa, pb, replace_first)
             self.canvas.draw_transformed(sa, sb, pa, pb, replace_first)
             self.save_to_db_button.setEnabled(True)
+            self.save_as_png_button.setEnabled(True)
+            self.saved_title = entry["title"]
+
+    def save_as_png(self):
+        if not self.canvas.transformed:
+            self.handle_error("Najpierw wykonaj zamianę unitermów.")
+            return
+        
+        default_name = "Untitled"
+        if hasattr(self, "saved_title") and self.saved_title:
+            default_name = self.saved_title
+
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Zapisz obraz jako PNG",
+            f"{default_name}.png",
+            "PNG Files (*.png)"
+        )
+
+        if not path:
+            return
+        
+        pixmap = QPixmap(self.canvas.size())
+        self.canvas.render(pixmap)
+        if not pixmap.save(path):
+            self.handle_error("Nie udało się zapisać obrazu.")
+        else:
+            QMessageBox.information(self, "Sukces", f"Obraz zapisany jako:\n{path}")
 
     def handle_error(self, message):
         QMessageBox.warning(self, "Błąd", message)

@@ -1,7 +1,9 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QDialog, QLabel, QLineEdit, QComboBox, QPushButton,
     QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QMessageBox
 )
+
 from database import get_all_authors, get_all_entries, delete_entry
 
 class SaveDialog(QDialog):
@@ -9,6 +11,7 @@ class SaveDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Zapisz dane")
         self.setMinimumWidth(300)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         self.title_label = QLabel("Nazwa (wymagana):")
         self.title_field = QLineEdit()
@@ -52,6 +55,7 @@ class LoadDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Wybierz zapis")
         self.setMinimumSize(500, 300)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         self.selected_entry = None
 
