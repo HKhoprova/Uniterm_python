@@ -1,4 +1,5 @@
 import sys
+import re
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
     QWidget,  QLabel, QLineEdit, QPushButton, QApplication, QMessageBox,
@@ -96,24 +97,24 @@ class UnitermApp(QWidget):
     def show_seq(self):
         a = self.seq_field1.text()
         b = self.seq_field2.text()
-        if a and b:
-            self.saved_seq = (a, b)
-            self.canvas.draw_seq(a, b)
-            self.save_to_db_button.setEnabled(False)
-            self.save_as_png_button.setEnabled(False)
-        else:
-            self.handle_error("Wprowadź unitermy i spróbuj ponownie.")
+        if not self.is_valid_uniterm(a) or not self.is_valid_uniterm(b):
+            self.handle_error("Uniterm nie może zawierać znaków ; ani , oraz nie może być pusty.")
+            return
+        self.saved_seq = (a, b)
+        self.canvas.draw_seq(a, b)
+        self.save_to_db_button.setEnabled(False)
+        self.save_as_png_button.setEnabled(False)
 
     def show_paral(self):
         a = self.paral_field1.text().strip()
         b = self.paral_field2.text().strip()
-        if a and b:
-            self.saved_paral = (a, b)
-            self.canvas.draw_paral(a, b)
-            self.save_to_db_button.setEnabled(False)
-            self.save_as_png_button.setEnabled(False)
-        else:
-            self.handle_error("Wprowadź unitermy i spróbuj ponownie.")
+        if not self.is_valid_uniterm(a) or not self.is_valid_uniterm(b):
+            self.handle_error("Uniterm nie może zawierać znaków ; ani , oraz nie może być pusty.")
+            return
+        self.saved_paral = (a, b)
+        self.canvas.draw_paral(a, b)
+        self.save_to_db_button.setEnabled(False)
+        self.save_as_png_button.setEnabled(False)
 
     def show_transform(self):
         if not self.saved_seq:
@@ -193,6 +194,9 @@ class UnitermApp(QWidget):
             self.handle_error("Nie udało się zapisać obrazu.")
         else:
             QMessageBox.information(self, "Sukces", f"Obraz zapisany jako:\n{path}")
+
+    def is_valid_uniterm(self, s):
+        return bool(s.strip()) and not re.search(r"[;,]", s)
 
     def handle_error(self, message):
         QMessageBox.warning(self, "Błąd", message)
